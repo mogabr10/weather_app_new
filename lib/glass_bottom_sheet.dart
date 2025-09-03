@@ -20,10 +20,13 @@ class GlassBottomSheet extends StatelessWidget {
   final double noiseOpacity;
   final double blurSigma;
 
+  /// Callback for position changes
+  final Function(double)? onPositionChanged;
+
   const GlassBottomSheet({
     super.key,
     this.initialChildSize = 0.3,
-    this.minChildSize = 0.2,
+    this.minChildSize = 0.3,
     this.maxChildSize = 0.8,
     this.tabs,
     this.tabViews,
@@ -36,6 +39,7 @@ class GlassBottomSheet extends StatelessWidget {
     this.noiseAsset,
     this.noiseOpacity = 0.05,
     this.blurSigma = 15,
+    this.onPositionChanged,
   }) : assert(
          (tabs != null && tabViews != null && tabs.length == tabViews.length) ||
              builder != null,
@@ -44,84 +48,92 @@ class GlassBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: initialChildSize,
-      minChildSize: minChildSize,
-      maxChildSize: maxChildSize,
-      builder: (context, scrollController) {
-        return ClipRRect(
-          borderRadius: borderRadius,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-            child: Stack(
-              children: [
-                // Gradient background
-                Container(
-                  decoration: BoxDecoration(
-                    gradient:
-                        gradient ??
-                        LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.2),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                        ),
-                    borderRadius: borderRadius,
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-
-                // Optional noise overlay
-                if (noiseAsset != null)
+    return NotificationListener<DraggableScrollableNotification>(
+      onNotification: (notification) {
+        if (onPositionChanged != null) {
+          onPositionChanged!(notification.extent);
+        }
+        return false; // Don't stop the notification propagation
+      },
+      child: DraggableScrollableSheet(
+        initialChildSize: initialChildSize,
+        minChildSize: minChildSize,
+        maxChildSize: maxChildSize,
+        builder: (context, scrollController) {
+          return ClipRRect(
+            borderRadius: borderRadius,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+              child: Stack(
+                children: [
+                  // Gradient background
                   Container(
                     decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(noiseAsset!),
-                        repeat: ImageRepeat.repeat,
-                        opacity: noiseOpacity,
+                      gradient:
+                          gradient ??
+                          LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.2),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                          ),
+                      borderRadius: borderRadius,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1.5,
                       ),
                     ),
                   ),
 
-                // Content: Either Tabs or Builder
-                if (tabs != null && tabViews != null)
-                  DefaultTabController(
-                    length: tabs!.length,
-                    child: Column(
-                      children: [
-                        TabBar(
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.white70,
-                          indicatorColor: Colors.white,
-                          tabs: tabs!.map((t) => Tab(text: t)).toList(),
+                  // Optional noise overlay
+                  if (noiseAsset != null)
+                    Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(noiseAsset!),
+                          repeat: ImageRepeat.repeat,
+                          opacity: noiseOpacity,
                         ),
-                        Expanded(
-                          child: TabBarView(
-                            children: tabViews!
-                                .map(
-                                  (tabView) => SingleChildScrollView(
-                                    controller: scrollController,
-                                    child: tabView,
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  )
-                else if (builder != null)
-                  builder!(context, scrollController),
-              ],
+
+                  // Content: Either Tabs or Builder
+                  if (tabs != null && tabViews != null)
+                    DefaultTabController(
+                      length: tabs!.length,
+                      child: Column(
+                        children: [
+                          TabBar(
+                            labelColor: Colors.white,
+                            unselectedLabelColor: Colors.white70,
+                            indicatorColor: Colors.white,
+                            tabs: tabs!.map((t) => Tab(text: t)).toList(),
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: tabViews!
+                                  .map(
+                                    (tabView) => SingleChildScrollView(
+                                      controller: scrollController,
+                                      child: tabView,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (builder != null)
+                    builder!(context, scrollController),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
