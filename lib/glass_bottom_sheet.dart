@@ -21,7 +21,7 @@ class GlassBottomSheet extends StatelessWidget {
   final double blurSigma;
 
   const GlassBottomSheet({
-    super.key,
+    Key? key,
     this.initialChildSize = 0.3,
     this.minChildSize = 0.2,
     this.maxChildSize = 0.8,
@@ -40,7 +40,8 @@ class GlassBottomSheet extends StatelessWidget {
          (tabs != null && tabViews != null && tabs.length == tabViews.length) ||
              builder != null,
          'Either provide tabs and tabViews of equal length, or a builder function',
-       );
+       ),
+       super(key: key);
 
   @override
   Widget build(BuildContext context) {
