@@ -142,7 +142,7 @@ class WeatherHeader extends StatelessWidget {
               fontSizeStart: 22,
               fontSizeEnd: 16,
               start: const Offset(0.0, 2.0),
-              end: const Offset(0.8, -0.4),
+              end: const Offset(0.0, 0.0),
               progress: progress,
               color: Colors.white70,
             ),
